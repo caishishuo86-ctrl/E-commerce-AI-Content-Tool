@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Download, Copy } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function App() {
   const [form, setForm] = useState({
@@ -15,10 +16,10 @@ export default function App() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
+  const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -27,20 +28,19 @@ export default function App() {
       product_name: "智能电饭煲",
       category: "厨房电器",
       selling_points: "省电,大容量,一键操作",
-      style: "简约风",
+      style: "极简风",
     });
   };
 
   const runWorkflow = async () => {
     setLoading(true);
-    setResult(null);
     setError("");
+    setResult(null);
 
     try {
-      const res = await fetch("https://api.dify.ai/v1/workflows/run", {
+      const res = await fetch("/api/runWorkflow", {
         method: "POST",
         headers: {
-          Authorization: "Bearer app-RlJJVyGQLN7plp0el7VJKZ50",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -50,124 +50,175 @@ export default function App() {
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      console.log("真实返回👇", text);
 
-      if (!data?.data?.outputs) {
-        throw new Error("返回数据异常");
-      }
+      const data = JSON.parse(text);
 
-      setResult(data.data.outputs);
+      const outputs = data?.data?.outputs || {};
+
+      setResult({
+        title: outputs.title || "暂无标题",
+        selling_points: outputs.selling_points
+          ? outputs.selling_points.split(",")
+          : [],
+        image: outputs.result || "",
+      });
     } catch (err) {
-      setError("生成失败，请检查接口或参数");
       console.error(err);
+      setError("生成失败");
     }
 
     setLoading(false);
   };
 
-  const downloadImage = async () => {
-    const url = result?.images?.[0]?.url;
-    if (!url) return;
-    const blob = await fetch(url).then((r) => r.blob());
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "product-image.png";
-    link.click();
-  };
-
-  const copyText = (text) => {
+  const copyText = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
+  const downloadImage = () => {
+    if (!result?.image) return;
+    window.open(result.image, "_blank");
+  };
+
   return (
-    <div className="p-6 grid grid-cols-2 gap-6">
-      {/* 左侧输入 */}
-      <Card className="p-4">
-        <CardContent className="space-y-3">
-          <h2 className="text-xl font-bold">AI电商上新助手</h2>
+    <div className="min-h-screen bg-white text-[#1A1A1A] p-10">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto"
+      >
+        {/* 左侧 */}
+        <Card className="rounded-lg shadow-md">
+          <CardContent className="p-8 space-y-5">
+            <h1 className="text-2xl font-semibold">AI电商上新助手</h1>
 
-          <Input name="product_name" placeholder="商品名称" value={form.product_name} onChange={handleChange} />
-          <Input name="category" placeholder="商品品类" value={form.category} onChange={handleChange} />
-          <Input name="selling_points" placeholder="核心卖点" value={form.selling_points} onChange={handleChange} />
-          <Input name="style" placeholder="文案风格" value={form.style} onChange={handleChange} />
+            <Input
+              name="product_name"
+              placeholder="商品名称"
+              value={form.product_name}
+              onChange={handleChange}
+            />
+            <Input
+              name="category"
+              placeholder="商品品类"
+              value={form.category}
+              onChange={handleChange}
+            />
+            <Input
+              name="selling_points"
+              placeholder="核心卖点（逗号分隔）"
+              value={form.selling_points}
+              onChange={handleChange}
+            />
+            <Input
+              name="style"
+              placeholder="风格（极简 / 高端 / 小红书）"
+              value={form.style}
+              onChange={handleChange}
+            />
 
-          <div className="flex gap-2">
-            <Button onClick={runWorkflow} disabled={loading} className="w-full">
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="animate-spin" size={16} /> 生成中...
-                </span>
-              ) : (
-                "一键生成"
-              )}
-            </Button>
+            {/* 按钮铺满 */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <Button
+                onClick={runWorkflow}
+                disabled={loading}
+                className="w-full h-11 bg-[#1A1A1A] text-white hover:bg-[#333]"
+              >
+                {loading ? (
+                  <Loader2 className="animate-spin" size={16} />
+                ) : (
+                  "生成"
+                )}
+              </Button>
 
-            <Button variant="outline" onClick={fillDemo}>示例</Button>
-          </div>
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-        </CardContent>
-      </Card>
-
-      {/* 右侧结果 */}
-      <Card className="p-4">
-        <CardContent>
-          <h2 className="text-xl font-bold mb-4">生成结果</h2>
-
-          {loading && (
-            <div className="space-y-2 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="h-40 bg-gray-200 rounded"></div>
+              <Button
+                variant="outline"
+                onClick={fillDemo}
+                className="w-full h-11"
+              >
+                示例
+              </Button>
             </div>
-          )}
 
-          {result && (
-            <div className="space-y-4">
-              {/* 标题 */}
-              <div>
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold">标题</h3>
-                  <Copy size={16} className="cursor-pointer" onClick={() => copyText(result.标题)} />
-                </div>
-                <p>{result.标题}</p>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+          </CardContent>
+        </Card>
+
+        {/* 右侧 */}
+        <Card className="rounded-lg shadow-md">
+          <CardContent className="p-8 space-y-6">
+            <h2 className="text-2xl font-semibold">生成结果</h2>
+
+            {loading && (
+              <div className="space-y-3 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-40 bg-gray-200 rounded"></div>
               </div>
+            )}
 
-              {/* 卖点 */}
-              <div>
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold">卖点</h3>
-                  <Copy
-                    size={16}
-                    className="cursor-pointer"
-                    onClick={() => copyText(result.卖点?.join("\n"))}
-                  />
-                </div>
-                <ul className="list-disc pl-5">
-                  {result.卖点?.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* 图片 */}
-              {result.images && (
+            {result && (
+              <>
+                {/* 标题 */}
                 <div>
-                  <img
-                    src={result.images[0].url}
-                    alt="生成图片"
-                    className="rounded-2xl shadow"
-                  />
-
-                  <Button onClick={downloadImage} className="mt-2 w-full">
-                    <Download size={16} className="mr-2" /> 下载主图
-                  </Button>
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="font-medium">标题</h3>
+                    <Copy
+                      size={16}
+                      className="cursor-pointer hover:text-blue-500"
+                      onClick={() => copyText(result.title)}
+                    />
+                  </div>
+                  <p className="text-lg">{result.title}</p>
                 </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
+                {/* 卖点 */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="font-medium">卖点</h3>
+                    <Copy
+                      size={16}
+                      className="cursor-pointer hover:text-blue-500"
+                      onClick={() =>
+                        copyText(result.selling_points.join("\n"))
+                      }
+                    />
+                  </div>
+                  <ul className="space-y-1">
+                    {result.selling_points.map((item: string, i: number) => (
+                      <li key={i}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* 图片 */}
+                {result.image && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <img
+                      src={result.image}
+                      className="rounded-lg shadow-sm"
+                    />
+
+                    <Button
+                      onClick={downloadImage}
+                      className="w-full mt-3 h-11 bg-[#3B82F6] text-white hover:opacity-90"
+                    >
+                      <Download size={16} className="mr-2" />
+                      下载图片
+                    </Button>
+                  </motion.div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
