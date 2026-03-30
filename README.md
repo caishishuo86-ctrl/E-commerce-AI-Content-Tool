@@ -1,36 +1,281 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 产品需求文档（PRD）
 
-## Getting Started
+## 前言
 
-First, run the development server:
+**项目目标：**  
+聚焦抖音电商商品上新全流程，打造AI辅助工具，通过「批量生成 + 模板复用」能力，整合图文内容制作环节，解决效率低、重复劳动多、经验无法沉淀的问题，将单商品制作时间从10-30分钟压缩至3分钟以内。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**核心价值：**  
+让运营从内容制作中解放，聚焦转化与增长，实现：
+- 高效上新
+- 批量落地
+- 经验沉淀
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 一、版本信息
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 字段 | 内容 |
+|------|------|
+| 版本号 | V1.0 |
+| 创建日期 | 2026-02-10 |
+| 审核人 | - |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 二、变更日志
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| 时间 | 版本号 | 变更人 | 内容 |
+|------|--------|--------|------|
+| 2026-02-10 | V1.0 | 蔡士硕 | 初版PRD创建 |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 三、文档说明
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3.1 名词解释
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| 术语 | 说明 |
+|------|------|
+| CMS | 内容管理系统 |
+| AI生成 | 基于大模型生成图文 |
+| 模板 | 可复用内容组合 |
+| SKU | 最小库存单位 |
+| 上新 | 商品首次上架 |
+| 批量生成 | 同时生成多个商品内容 |
+| 合规校验 | 检测违规词 |
+
+---
+
+### 3.2 文档目的
+
+1. 明确产品需求与范围  
+2. 对齐产品价值与用户痛点  
+3. 支撑后续迭代  
+4. 用于面试/汇报展示  
+
+---
+
+### 3.3 阅读对象
+
+- 研发团队
+- 测试团队
+- 设计团队
+- 运营团队
+- 管理层
+
+---
+
+## 四、需求背景
+
+### 4.1 现状问题
+
+- 内容制作流程分散（多个工具切换）
+- 单商品制作耗时：10–30分钟
+- 无批量能力
+- 优质内容无法复用
+- 内容质量不统一
+
+**本质问题：**
+- 效率低  
+- 无沉淀  
+- 不可规模化  
+
+---
+
+### 4.2 用户调研结论
+
+- 80%时间花在内容制作
+- 70%用户最痛点：文案 + 图片
+- 90%用户：内容无法复用
+- 强需求：一键生成 + 简单操作
+
+---
+
+### 4.3 竞品分析结论
+
+| 类型 | 问题 |
+|------|------|
+| 设计工具 | 不贴电商流程 |
+| 文案工具 | 只有文案 |
+| 图片工具 | 只有图片 |
+| 平台工具 | 无AI能力 |
+
+**机会点：**
+- 图文一体化  
+- 批量生成  
+- 模板复用  
+
+---
+
+## 五、需求范围
+
+### 5.1 MVP核心能力
+
+#### 必做模块
+
+1. 商品导入（Excel / 手动）
+2. AI内容生成（文案 + 图片）
+3. 模板复用
+4. 内容编辑
+5. 内容导出
+6. 合规校验
+
+#### 非本期
+
+- 视频生成
+- 自动上架
+- 数据分析
+- 模板推荐
+
+---
+
+### 5.2 信息架构
+首页
+├── 商品管理
+│ ├── 导入商品
+│ ├── 商品列表
+│
+├── 内容生成
+│ ├── 批量生成
+│ ├── 编辑
+│ ├── 导出
+│
+├── 模板中心
+│ ├── 我的模板
+│ ├── 默认模板
+│
+└── 系统设置
+├── 违规词库
+├── 帮助中心
+
+---
+
+## 六、功能设计
+
+### 核心流程
+导入商品 → 选择生成方式 → 批量生成 → 编辑 → 导出 → 保存模板
+
+---
+
+### 6.1 核心功能
+
+#### 1. 商品导入
+
+- Excel批量导入
+- 手动录入
+- 数据校验
+
+---
+
+#### 2. AI生成
+
+**文案生成：**
+- 标题（15–30字）
+- 卖点（3–5条）
+
+**图片生成：**
+- 模板叠字
+- 自动适配电商尺寸
+
+---
+
+#### 3. 批量生成
+
+- 单次最多50个商品
+- 支持AI生成 / 模板复用
+
+---
+
+#### 4. 内容编辑
+
+- 文案修改
+- 图片拖拽排版
+- 实时违规检测
+
+---
+
+#### 5. 内容导出
+
+- 文案：txt / Excel  
+- 图片：jpg / png  
+- 支持批量导出  
+
+---
+
+#### 6. 模板系统
+
+- 保存模板
+- 分类管理
+- 标签筛选
+- 一键复用
+
+---
+
+#### 7. 合规校验
+
+- 违规词检测
+- 自动标记
+- 修改建议
+
+---
+
+## 七、非功能需求
+
+### 7.1 性能
+
+- 单商品生成 ≤10秒  
+- 50商品 ≤5分钟  
+- 成功率 ≥99%  
+
+---
+
+### 7.2 可用性
+
+- 3步完成核心操作  
+- 10分钟上手  
+- UI简洁  
+
+---
+
+### 7.3 运营
+
+- ≥10个默认模板  
+- 支持扩展  
+- 用户反馈机制  
+
+---
+
+### 7.4 法务
+
+- 违规词库  
+- 版权提示  
+- 数据隐私保护  
+
+---
+
+## 八、埋点设计
+
+| 事件 | 说明 |
+|------|------|
+| generate_click | 点击生成 |
+| generate_success | 生成成功 |
+| generate_fail | 生成失败 |
+| template_use | 使用模板 |
+| template_save | 保存模板 |
+| import_click | 导入商品 |
+| export_click | 导出内容 |
+
+---
+
+## 九、项目规划
+
+（待补充）
+
+---
+
+## 附录
+
+- 数据分析报告  
+- 用户调研报告  
+- 设计分析报告  
